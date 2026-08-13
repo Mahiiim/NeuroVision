@@ -1,3 +1,10 @@
 venv/
 __pycache__/
 *.pyc
+*.pyo
+dist/
+build/
+*.spec.bak
+.idea/
+.vscode/
+*.egg-info/

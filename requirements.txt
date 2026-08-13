@@ -1,6 +1,8 @@
+PySide6>=6.6.0
 opencv-python
-mediapipe
+mediapipe>=0.10.0
 numpy
 pyttsx3
 pyautogui
 Pillow
+pyinstaller
