@@ -18,7 +18,7 @@ BORDER = "#30363d"
 _ABOUT_HTML = """
 <div style='font-family: Segoe UI, Inter, sans-serif; color: #e6edf3;'>
 
-<h1 style='color: #00b4ff; letter-spacing: 3px; font-size: 28px;'>NEURO DRISTI</h1>
+<h1 style='color: #00b4ff; letter-spacing: 3px; font-size: 28px;'>NEUROVISION</h1>
 <p style='color: #8b949e; font-size: 13px; margin-top: -8px;'>
     Eye-Controlled Assistive Communication System
 </p>
@@ -26,7 +26,7 @@ _ABOUT_HTML = """
 <hr style='border: 1px solid #30363d; margin: 16px 0;'/>
 
 <p style='font-size: 13px; line-height: 1.7;'>
-NeuroDrishti enables individuals with limited motor control to communicate and interact
+NeuroVision enables individuals with limited motor control to communicate and interact
 with a computer using only their eyes.
 </p>
 
@@ -54,7 +54,7 @@ with a computer using only their eyes.
 
 <h3 style='color: #00b4ff;'>Logs</h3>
 <p style='font-size: 12px; color: #8b949e;'>
-    Application logs are written to: <code style='color:#00b4ff;'>~/.neurodrishti/app.log</code>
+    Application logs are written to: <code style='color:#00b4ff;'>~/.neurovision/app.log</code>
 </p>
 
 <hr style='border: 1px solid #30363d; margin: 16px 0;'/>

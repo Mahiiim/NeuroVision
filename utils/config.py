@@ -4,7 +4,7 @@ utils/config.py
 JSON-backed configuration system.
 
 All user-adjustable settings live here. On first launch the defaults are
-written to ~/.neurodrishti/config.json; subsequent launches load from that
+written to ~/.neurovision/config.json; subsequent launches load from that
 file, so settings persist across sessions.
 
 Usage:
@@ -24,7 +24,7 @@ from utils.logger import get_logger
 log = get_logger(__name__)
 
 # Where the config file lives
-_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".neurodrishti")
+_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".neurovision")
 _CONFIG_FILE = os.path.join(_CONFIG_DIR, "config.json")
 
 # ──────────────────────────────────────────────────────────────
@@ -53,7 +53,7 @@ DEFAULTS: dict[str, Any] = {
     "speech_voice_index": 0,
     # Interface
     "dark_mode": True,
-    "show_landmarks": True,
+    "show_landmarks": False,
     "show_tracking_info": True,
     # Quick phrases
     "phrases": [

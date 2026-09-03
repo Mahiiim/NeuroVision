@@ -126,15 +126,9 @@ class DashboardWidget(QWidget):
         self._btn_stop.setEnabled(False)
         self._btn_stop.clicked.connect(self._stop_tracking)
 
-        self._chk_landmarks = QCheckBox("Show Landmarks")
-        self._chk_landmarks.setStyleSheet(f"color:{TEXT_MUTED}; font-size:12px;")
-        self._chk_landmarks.setChecked(self._config.get("show_landmarks", True))
-        self._chk_landmarks.toggled.connect(self._tracker.set_show_landmarks)
-
         ctrl_row.addWidget(self._btn_start)
         ctrl_row.addWidget(self._btn_stop)
         ctrl_row.addStretch(1)
-        ctrl_row.addWidget(self._chk_landmarks)
         left.addLayout(ctrl_row)
 
         outer.addLayout(left, 3)

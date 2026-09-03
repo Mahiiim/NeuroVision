@@ -1,6 +1,6 @@
-# NeuroDrishti
+# NeuroVision
 
-**NeuroDrishti** is a professional **Eye-Controlled Assistive Communication System** built with Python and PySide6. It enables individuals with speech or motor impairments to control a computer and communicate using only head movements and eye blinks — no physical mouse or keyboard required.
+**NeuroVision** is a professional **Eye-Controlled Assistive Communication System** built with Python and PySide6. It enables individuals with speech or motor impairments to control a computer and communicate using only head movements and eye blinks — no physical mouse or keyboard required.
 
 ---
 
@@ -22,7 +22,7 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  NEURO DRISTI  │ Eye-Controlled Assistive Communication      │
+│  NEUROVISION  │ Eye-Controlled Assistive Communication      │
 │  [Camera: ●] [Face: ●] [Tracking: ●] [Voice: ●]           │
 ├───────────┬──────────────────────────────────────────────────┤
 │ Dashboard │  Live webcam feed + EAR display + controls      │
@@ -40,11 +40,11 @@
 ## 📁 Project Structure
 
 ```
-NeuroDristi/
+NeuroVision/
 │
 ├── main.py                    # Entry point & startup sequence
 ├── requirements.txt
-├── NeuroDristi.spec           # PyInstaller build spec
+├── NeuroVision.spec           # PyInstaller build spec
 ├── README.md
 │
 ├── models/
@@ -71,7 +71,7 @@ NeuroDristi/
 └── utils/
     ├── resource.py            # Path resolution (dev + PyInstaller)
     ├── config.py              # JSON config load/save/defaults
-    └── logger.py              # Rotating file logger → ~/.neurodrishti/app.log
+    └── logger.py              # Rotating file logger → ~/.neurovision/app.log
 ```
 
 ---
@@ -89,8 +89,8 @@ NeuroDristi/
 ### 1. Clone and set up
 
 ```bash
-git clone https://github.com/Mahiiim/NeuroDrishti.git
-cd NeuroDrishti
+git clone https://github.com/Mahiiim/NeuroVision.git
+cd NeuroVision
 python -m venv venv
 venv\Scripts\activate       # Windows
 pip install -r requirements.txt
@@ -121,10 +121,10 @@ On first launch, the MediaPipe model (`~3.5 MB`) will be downloaded automaticall
 
 ```bash
 pip install pyinstaller
-pyinstaller NeuroDristi.spec
+pyinstaller NeuroVision.spec
 ```
 
-The output will be in `dist/NeuroDrishti/NeuroDrishti.exe`.
+The output will be in `dist/NeuroVision/NeuroVision.exe`.
 
 > **Note:** First copy or pre-download `models/face_landmarker.task` before building, or the app will download it on first run.
 
@@ -132,7 +132,7 @@ The output will be in `dist/NeuroDrishti/NeuroDrishti.exe`.
 
 ## ⚙️ Configuration
 
-Settings are stored at `~/.neurodrishti/config.json` and can be changed in the **Settings** page:
+Settings are stored at `~/.neurovision/config.json` and can be changed in the **Settings** page:
 
 - Blink threshold & click cooldown
 - X/Y sensitivity & cursor smoothing
@@ -169,7 +169,7 @@ Phrase / key press → pyttsx3.say()
 Application logs are written to:
 
 ```
-~/.neurodrishti/app.log
+~/.neurovision/app.log
 ```
 
 ---

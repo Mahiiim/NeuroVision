@@ -1,14 +1,14 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-NeuroDristi.spec
+NeuroVision.spec
 -----------------
-PyInstaller build specification for NeuroDrishti.
+PyInstaller build specification for NeuroVision.
 
 Usage:
-    pyinstaller NeuroDristi.spec
+    pyinstaller NeuroVision.spec
 
 Output:
-    dist/NeuroDrishti/NeuroDrishti.exe   (one-folder build)
+    dist/NeuroVision/NeuroVision.exe   (one-folder build)
 
 Notes:
   - Uses one-folder mode for reliability (faster cold-start vs one-file)
@@ -53,7 +53,6 @@ a = Analysis(
     runtime_hooks=[],
     excludes=[
         "tkinter",
-        "matplotlib",
         "scipy",
         "pandas",
         "jupyter",
@@ -71,7 +70,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="NeuroDrishti",
+    name="NeuroVision",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -93,5 +92,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name="NeuroDrishti",
+    name="NeuroVision",
 )

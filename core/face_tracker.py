@@ -245,18 +245,8 @@ class FaceTrackerWorker(QThread):
         """Draw key landmarks and status text onto the frame (in-place)."""
         h, w = frame.shape[:2]
 
-        # Eye corners and lids for visualisation
-        eye_pts = [33, 133, 159, 145, 362, 263, 386, 374]
-        for idx in eye_pts:
-            lm = landmarks[idx]
-            px, py = int(lm.x * w), int(lm.y * h)
-            cv2.circle(frame, (px, py), 3, (0, 255, 200), -1)
-
-        # Nose tracking point
-        nose = landmarks[1]
-        nx, ny = int(nose.x * w), int(nose.y * h)
-        cv2.circle(frame, (nx, ny), 7, (0, 180, 255), -1)
-        cv2.circle(frame, (nx, ny), 9, (255, 255, 255), 2)
+        # Eye corners and lids for visualisation (Removed for cleaner UI)
+        # Nose tracking point (Removed for cleaner UI)
 
         # EAR status overlay
         status = eye_status_label(ear, threshold)

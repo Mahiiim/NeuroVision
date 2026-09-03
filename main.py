@@ -1,7 +1,7 @@
 """
 main.py
 --------
-NeuroDrishti — Eye-Controlled Assistive Communication System
+Neuro-Gaze — Eye-Controlled Assistive Communication System
 Entry point and startup sequence.
 
 Startup order:
@@ -17,8 +17,11 @@ Startup order:
 import sys
 import os
 
+# pyrefly: ignore [missing-import]
 from PySide6.QtWidgets import QApplication, QMessageBox, QProgressDialog
+# pyrefly: ignore [missing-import]
 from PySide6.QtCore import Qt, QThread
+# pyrefly: ignore [missing-import]
 from PySide6.QtGui import QFont
 
 from utils.logger import get_logger
@@ -49,7 +52,7 @@ def _ensure_model(app: QApplication) -> bool:
         0,
         100,
     )
-    progress.setWindowTitle("NeuroDrishti — First Run Setup")
+    progress.setWindowTitle("Neuro-Gaze — First Run Setup")
     progress.setWindowModality(Qt.WindowModality.ApplicationModal)
     progress.setMinimumWidth(460)
     progress.setValue(0)
@@ -78,7 +81,7 @@ def _ensure_model(app: QApplication) -> bool:
             None,
             "Download Cancelled",
             "The model download was cancelled.\n"
-            "NeuroDrishti cannot run without the face tracking model.",
+            "Neuro-Gaze cannot run without the face tracking model.",
         )
         return False
 
@@ -88,7 +91,7 @@ def _ensure_model(app: QApplication) -> bool:
             "Download Failed",
             "Failed to download the face tracking model.\n\n"
             "Please check your internet connection and restart the application.\n"
-            f"Log file: ~/.neurodrishti/app.log",
+            f"Log file: ~/.neuro-gaze/app.log",
         )
         return False
 
@@ -100,8 +103,8 @@ def _ensure_model(app: QApplication) -> bool:
 def main() -> int:
     # ── Qt application ──────────────────────────────────────────
     app = QApplication(sys.argv)
-    app.setApplicationName("NeuroDrishti")
-    app.setApplicationDisplayName("NeuroDrishti")
+    app.setApplicationName("Neuro-Gaze")
+    app.setApplicationDisplayName("Neuro-Gaze")
     app.setApplicationVersion("2.0")
 
     # Global font
@@ -109,7 +112,7 @@ def main() -> int:
     app.setFont(font)
 
     # ── Configuration ───────────────────────────────────────────
-    log.info("NeuroDrishti starting — version 2.0")
+    log.info("Neuro-Gaze starting — version 2.0")
     config = Config()
     log.info("Configuration loaded")
 

@@ -1,7 +1,7 @@
 """
 ui/main_window.py
 ------------------
-Root QMainWindow for NeuroDrishti.
+Root QMainWindow for NeuroVision.
 
 Layout
 ------
@@ -18,8 +18,8 @@ Layout
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QFont, QIcon, QKeySequence, QShortcut, QColor
+from PySide6.QtCore import Qt, QSize, QTimer, QVariantAnimation
+from PySide6.QtGui import QFont, QIcon, QKeySequence, QShortcut, QColor, QPainter, QBrush
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QFrame,
+    QMessageBox
 )
 
 from core.face_tracker import FaceTrackerWorker
@@ -39,23 +40,25 @@ from ui.dashboard import DashboardWidget
 from ui.keyboard import KeyboardWidget
 from ui.phrases import PhrasesWidget
 from ui.settings import SettingsWidget
+from ui.wheelchair import WheelchairWidget
+from ui.home_automation import HomeAutomationWidget
 from utils.config import Config
 from utils.logger import get_logger
 
 log = get_logger(__name__)
 
 # ── Colour palette ────────────────────────────────────────────
-BG_DARK = "#0d1117"
-BG_PANEL = "#161b22"
-BG_SIDEBAR = "#0d1117"
-ACCENT = "#00b4ff"
-ACCENT_HOVER = "#33c6ff"
-TEXT_PRIMARY = "#e6edf3"
-TEXT_MUTED = "#8b949e"
-BORDER = "#30363d"
-SUCCESS = "#3fb950"
-WARNING = "#d29922"
-DANGER = "#f85149"
+BG_DARK = "#0A1118"
+BG_PANEL = "#101F30"
+BG_SIDEBAR = "#0A1118"
+ACCENT = "#00D2FF"
+ACCENT_HOVER = "#00F5D4"
+TEXT_PRIMARY = "#FFFFFF"
+TEXT_MUTED = "#A0B2C6"
+BORDER = "rgba(255, 255, 255, 0.1)"
+SUCCESS = "#2ED573"
+WARNING = "#FFA502"
+DANGER = "#FF4757"
 
 STYLESHEET = f"""
 QMainWindow, QWidget {{
@@ -68,23 +71,19 @@ QFrame#sidebar {{
     border-right: 1px solid {BORDER};
 }}
 QPushButton#navBtn {{
-    background-color: transparent;
+    background-color: rgba(255, 255, 255, 0.05);
     color: {TEXT_MUTED};
-    border: none;
-    border-left: 3px solid transparent;
+    border: 1px solid {BORDER};
+    border-radius: 12px;
     padding: 14px 20px;
-    font-size: 13px;
+    font-size: 15px;
     text-align: left;
     font-weight: 500;
 }}
-QPushButton#navBtn:hover {{
-    background-color: rgba(0, 180, 255, 0.08);
-    color: {TEXT_PRIMARY};
-}}
 QPushButton#navBtn[active="true"] {{
-    color: {ACCENT};
-    border-left: 3px solid {ACCENT};
-    background-color: rgba(0, 180, 255, 0.12);
+    color: {TEXT_PRIMARY};
+    border: 1px solid {ACCENT};
+    background-color: rgba(0, 210, 255, 0.15);
     font-weight: 700;
 }}
 QPushButton#emergencyBtn {{
@@ -118,6 +117,54 @@ QLabel#appSubtitle {{
 """
 
 
+class GazeNavButton(QPushButton):
+    """A button that triggers a visual progress indicator and clicks automatically after dwelling."""
+    def __init__(self, text: str, parent=None) -> None:
+        super().__init__(text, parent)
+        self.setObjectName("navBtn")
+        self.setMinimumHeight(72)
+        
+        self._hover_timer = QTimer(self)
+        self._hover_timer.setSingleShot(True)
+        self._hover_timer.setInterval(600)
+        self._hover_timer.timeout.connect(self.click)
+        
+        self._anim = QVariantAnimation(self)
+        self._anim.setDuration(600)
+        self._anim.setStartValue(0.0)
+        self._anim.setEndValue(100.0)
+        self._anim.valueChanged.connect(self._on_anim)
+        
+        self._progress = 0.0
+        
+    def _on_anim(self, val):
+        self._progress = val
+        self.update()
+
+    def enterEvent(self, event):
+        super().enterEvent(event)
+        self._hover_timer.start()
+        self._anim.start()
+
+    def leaveEvent(self, event):
+        super().leaveEvent(event)
+        self._hover_timer.stop()
+        self._anim.stop()
+        self._progress = 0.0
+        self.update()
+        
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        if self._progress > 0 and self.property("active") != "true":
+            painter = QPainter(self)
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(QColor(ACCENT_HOVER))
+            painter.setOpacity(0.2)
+            w = int(self.width() * (self._progress / 100.0))
+            painter.drawRoundedRect(0, 0, w, self.height(), 12, 12)
+            painter.end()
+
+
 class StatusPill(QLabel):
     """A small coloured pill label for header status indicators."""
 
@@ -139,8 +186,9 @@ class StatusPill(QLabel):
         color = SUCCESS if self._ok else DANGER
         display = text if text else ("●" if self._ok else "○")
         self.setText(f"  {self._label}: {display}  ")
+        bg_rgb = "46,213,115" if self._ok else "255,71,87"
         self.setStyleSheet(
-            f"background-color: rgba({'63,185,80' if self._ok else '248,81,73'}, 0.15);"
+            f"background-color: rgba({bg_rgb}, 0.15);"
             f"color: {color};"
             f"border: 1px solid {color};"
             f"border-radius: 12px;"
@@ -153,10 +201,12 @@ class MainWindow(QMainWindow):
 
     # Page indices in the QStackedWidget
     PAGE_DASHBOARD = 0
-    PAGE_KEYBOARD = 1
-    PAGE_PHRASES = 2
-    PAGE_SETTINGS = 3
-    PAGE_ABOUT = 4
+    PAGE_WHEELCHAIR = 1
+    PAGE_HOME = 2
+    PAGE_KEYBOARD = 3
+    PAGE_PHRASES = 4
+    PAGE_SETTINGS = 5
+    PAGE_ABOUT = 6
 
     def __init__(self, config: Config, tracker: FaceTrackerWorker, speech: SpeechEngine) -> None:
         super().__init__()
@@ -164,7 +214,7 @@ class MainWindow(QMainWindow):
         self._tracker = tracker
         self._speech = speech
 
-        self.setWindowTitle("NeuroDrishti — Eye-Controlled Assistive System")
+        self.setWindowTitle("NeuroVision — Eye-Controlled Assistive Ecosystem")
         self.setMinimumSize(1100, 720)
         self.resize(1280, 800)
         self.setStyleSheet(STYLESHEET)
@@ -212,7 +262,7 @@ class MainWindow(QMainWindow):
         # Title block
         title_block = QVBoxLayout()
         title_block.setSpacing(2)
-        title = QLabel("NEURO DRISTI")
+        title = QLabel("NEUROVISION")
         title.setObjectName("appTitle")
         subtitle = QLabel("Eye-Controlled Assistive Communication System")
         subtitle.setObjectName("appSubtitle")
@@ -236,22 +286,23 @@ class MainWindow(QMainWindow):
     def _build_sidebar(self) -> QFrame:
         frame = QFrame()
         frame.setObjectName("sidebar")
-        frame.setFixedWidth(190)
+        frame.setFixedWidth(280)
         layout = QVBoxLayout(frame)
-        layout.setContentsMargins(0, 16, 0, 16)
-        layout.setSpacing(2)
+        layout.setContentsMargins(12, 24, 12, 24)
+        layout.setSpacing(12)
 
         nav_items = [
             ("🏠  Dashboard", self.PAGE_DASHBOARD),
+            ("🦽  Wheelchair Drive", self.PAGE_WHEELCHAIR),
+            ("💡  Home Automation", self.PAGE_HOME),
             ("⌨️  Eye Keyboard", self.PAGE_KEYBOARD),
             ("💬  Quick Phrases", self.PAGE_PHRASES),
             ("⚙️  Settings", self.PAGE_SETTINGS),
             ("ℹ️  About", self.PAGE_ABOUT),
         ]
-        self._nav_buttons: dict[int, QPushButton] = {}
+        self._nav_buttons: dict[int, GazeNavButton] = {}
         for label, page_idx in nav_items:
-            btn = QPushButton(label)
-            btn.setObjectName("navBtn")
+            btn = GazeNavButton(label)
             btn.setCheckable(False)
             btn.setProperty("active", "false")
             btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
@@ -266,16 +317,20 @@ class MainWindow(QMainWindow):
         self._pages = QStackedWidget()
 
         self._dashboard = DashboardWidget(self._config, self._tracker, self._speech)
+        self._wheelchair = WheelchairWidget()
+        self._home_automation = HomeAutomationWidget()
         self._keyboard = KeyboardWidget(self._speech)
         self._phrases = PhrasesWidget(self._config, self._speech)
         self._settings = SettingsWidget(self._config, self._tracker, self._speech)
         self._about = AboutWidget()
 
-        self._pages.addWidget(self._dashboard)   # 0
-        self._pages.addWidget(self._keyboard)    # 1
-        self._pages.addWidget(self._phrases)     # 2
-        self._pages.addWidget(self._settings)    # 3
-        self._pages.addWidget(self._about)       # 4
+        self._pages.addWidget(self._dashboard)         # 0
+        self._pages.addWidget(self._wheelchair)        # 1
+        self._pages.addWidget(self._home_automation)   # 2
+        self._pages.addWidget(self._keyboard)          # 3
+        self._pages.addWidget(self._phrases)           # 4
+        self._pages.addWidget(self._settings)          # 5
+        self._pages.addWidget(self._about)             # 6
 
         self._navigate(self.PAGE_DASHBOARD)
         return self._pages
@@ -349,7 +404,6 @@ class MainWindow(QMainWindow):
         log.warning("Emergency stop triggered from MainWindow")
 
     def _on_tracking_error(self, message: str) -> None:
-        from PySide6.QtWidgets import QMessageBox
         self._pill_camera.set_ok(False, "Error")
         QMessageBox.critical(self, "Tracking Error", message)
 

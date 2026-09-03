@@ -1,7 +1,7 @@
 """
 create_icon.py — Generate assets/app_icon.ico programmatically.
 
-Draws a professional NeuroDrishti icon using Pillow:
+Draws a professional NeuroVision icon using Pillow:
   - Dark navy background circle
   - Glowing cyan eye shape
   - Neural dot pattern radiating from iris
@@ -22,75 +22,47 @@ def create_icon():
         cx = cy = size / 2
         r = size / 2
 
-        # ── Background circle ──────────────────────────────────
-        draw.ellipse([0, 0, size - 1, size - 1], fill=(10, 15, 30, 255))
+        # ── Background ─────────────────────────────────────────
+        # Transparent background
 
-        # ── Outer glow ring ────────────────────────────────────
-        ring_w = max(1, size // 32)
-        draw.ellipse(
-            [ring_w, ring_w, size - 1 - ring_w, size - 1 - ring_w],
-            outline=(0, 180, 255, 180),
-            width=ring_w,
-        )
-
-        # ── Eye white shape (horizontal ellipse) ───────────────
-        ew = size * 0.72
-        eh = size * 0.36
+        # ── Eye shape (blue outline, white interior) ───────────
+        ew = size * 0.9
+        eh = size * 0.45
         ex1 = cx - ew / 2
         ey1 = cy - eh / 2
         ex2 = cx + ew / 2
         ey2 = cy + eh / 2
-        draw.ellipse([ex1, ey1, ex2, ey2], fill=(0, 30, 60, 255))
+        
+        # Draw white interior
+        draw.ellipse([ex1, ey1, ex2, ey2], fill=(255, 255, 255, 255))
+        
+        # Draw blue outline
+        lw = max(1, size // 24)
+        draw.ellipse([ex1, ey1, ex2, ey2], outline=(0, 50, 120, 255), width=lw)
 
-        # ── Iris ───────────────────────────────────────────────
-        ir = size * 0.155
+        # ── Neuron shape (yellow) ──────────────────────────────
+        ir = size * 0.18
+        # Main neuron body
         draw.ellipse(
             [cx - ir, cy - ir, cx + ir, cy + ir],
-            fill=(0, 90, 160, 255),
+            fill=(255, 180, 0, 255),
         )
 
-        # ── Inner iris glow ────────────────────────────────────
-        ig = ir * 0.65
-        draw.ellipse(
-            [cx - ig, cy - ig, cx + ig, cy + ig],
-            fill=(0, 180, 255, 255),
-        )
-
-        # ── Pupil ──────────────────────────────────────────────
-        pp = ig * 0.45
-        draw.ellipse(
-            [cx - pp, cy - pp, cx + pp, cy + pp],
-            fill=(5, 10, 25, 255),
-        )
-
-        # ── Pupil highlight ────────────────────────────────────
-        hl = pp * 0.35
-        draw.ellipse(
-            [cx - hl * 0.5, cy - pp * 0.7, cx + hl * 0.5, cy - pp * 0.2],
-            fill=(255, 255, 255, 200),
-        )
-
-        # ── Neural dots (radiating from iris) ──────────────────
-        if size >= 48:
-            n_dots = 8
-            dot_r_start = ir * 1.35
-            dot_r_end = ir * 2.0
-            dot_size = max(1, size // 48)
-            for i in range(n_dots):
-                angle = (2 * math.pi / n_dots) * i
-                for frac in (0.55, 1.0):
-                    rr = dot_r_start + (dot_r_end - dot_r_start) * frac
-                    dx = cx + rr * math.cos(angle)
-                    dy = cy + rr * math.sin(angle)
-                    alpha = 220 if frac == 0.55 else 120
-                    draw.ellipse(
-                        [dx - dot_size, dy - dot_size, dx + dot_size, dy + dot_size],
-                        fill=(0, 200, 255, alpha),
-                    )
-
-        # ── Eye outline ────────────────────────────────────────
-        lw = max(1, size // 48)
-        draw.ellipse([ex1, ey1, ex2, ey2], outline=(0, 200, 255, 220), width=lw)
+        # Neural branches (dendrites)
+        if size >= 32:
+            n_branches = 6
+            branch_len = ir * 1.5
+            for i in range(n_branches):
+                angle = (2 * math.pi / n_branches) * i
+                dx = cx + branch_len * math.cos(angle)
+                dy = cy + branch_len * math.sin(angle)
+                
+                # Draw branch line
+                draw.line([(cx, cy), (dx, dy)], fill=(255, 180, 0, 255), width=max(1, size//32))
+                
+                # Draw terminal bouton
+                bouton_r = max(1, size // 40)
+                draw.ellipse([dx - bouton_r, dy - bouton_r, dx + bouton_r, dy + bouton_r], fill=(255, 180, 0, 255))
 
         frames.append(img)
 

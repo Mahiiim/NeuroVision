@@ -4,7 +4,7 @@ utils/logger.py
 Application-wide logging setup.
 
 Provides a rotating file logger that writes to:
-  ~/.neurodrishti/app.log
+  ~/.neurovision/app.log
 
 Usage:
     from utils.logger import get_logger
@@ -17,7 +17,7 @@ import os
 from logging.handlers import RotatingFileHandler
 
 # Directory for log files
-_LOG_DIR = os.path.join(os.path.expanduser("~"), ".neurodrishti")
+_LOG_DIR = os.path.join(os.path.expanduser("~"), ".neurovision")
 _LOG_FILE = os.path.join(_LOG_DIR, "app.log")
 
 # Ensure log directory exists
@@ -32,7 +32,7 @@ def _configure_root_logger() -> None:
     if _configured:
         return
 
-    root = logging.getLogger("neurodrishti")
+    root = logging.getLogger("neurovision")
     root.setLevel(logging.DEBUG)
 
     fmt = logging.Formatter(
@@ -59,6 +59,6 @@ def _configure_root_logger() -> None:
 
 
 def get_logger(name: str) -> logging.Logger:
-    """Return a child logger under the 'neurodrishti' namespace."""
+    """Return a child logger under the 'neurovision' namespace."""
     _configure_root_logger()
-    return logging.getLogger(f"neurodrishti.{name}")
+    return logging.getLogger(f"neurovision.{name}")
