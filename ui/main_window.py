@@ -318,7 +318,7 @@ class MainWindow(QMainWindow):
 
         self._dashboard = DashboardWidget(self._config, self._tracker, self._speech)
         self._wheelchair = WheelchairWidget()
-        self._home_automation = HomeAutomationWidget()
+        self._home_automation = HomeAutomationWidget(self._speech)
         self._keyboard = KeyboardWidget(self._speech)
         self._phrases = PhrasesWidget(self._config, self._speech)
         self._settings = SettingsWidget(self._config, self._tracker, self._speech)
@@ -337,18 +337,57 @@ class MainWindow(QMainWindow):
 
     def _build_emergency_bar(self) -> QWidget:
         bar = QWidget()
-        bar.setFixedHeight(52)
+        bar.setFixedHeight(72)
         bar.setStyleSheet(f"background-color: {BG_PANEL}; border-top: 1px solid {BORDER};")
         layout = QHBoxLayout(bar)
-        layout.setContentsMargins(24, 6, 24, 6)
+        layout.setContentsMargins(24, 10, 24, 10)
 
-        hint = QLabel("ESC — Emergency Stop  |  Stops all mouse control immediately")
-        hint.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 11px;")
+        hint = QLabel("ESC — Stop Mouse  |  DANGER — Alert Others")
+        hint.setStyleSheet(f"color: {TEXT_MUTED}; font-size: 13px;")
         layout.addWidget(hint, 1)
+
+        self._btn_alert = QPushButton("🚨  PATIENT EMERGENCY ALERT")
+        self._btn_alert.setObjectName("alertBtn")
+        self._btn_alert.setFixedHeight(52)
+        self._btn_alert.setStyleSheet(f"""
+            QPushButton#alertBtn {{
+                background-color: #FF0000;
+                color: white;
+                border: 2px solid #AA0000;
+                border-radius: 8px;
+                padding: 10px 30px;
+                font-size: 16px;
+                font-weight: 900;
+                letter-spacing: 1px;
+            }}
+            QPushButton#alertBtn:hover {{
+                background-color: #FF3333;
+                border: 2px solid #FF0000;
+            }}
+        """)
+        self._btn_alert.clicked.connect(self._trigger_patient_alert)
+        layout.addWidget(self._btn_alert)
+        
+        layout.addSpacing(15)
 
         self._btn_emergency = QPushButton("🛑  EMERGENCY STOP")
         self._btn_emergency.setObjectName("emergencyBtn")
-        self._btn_emergency.setFixedHeight(36)
+        self._btn_emergency.setFixedHeight(52)
+        self._btn_emergency.setStyleSheet(f"""
+            QPushButton#emergencyBtn {{
+                background-color: {DANGER};
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 10px 30px;
+                font-size: 15px;
+                font-weight: 700;
+                letter-spacing: 1px;
+            }}
+            QPushButton#emergencyBtn:hover {{
+                background-color: #ff6b6b;
+            }}
+        """)
         self._btn_emergency.clicked.connect(self._emergency_stop)
         layout.addWidget(self._btn_emergency)
 
@@ -402,6 +441,25 @@ class MainWindow(QMainWindow):
         self._dashboard.on_external_stop()
         self._pill_tracking.set_ok(False, "STOPPED")
         log.warning("Emergency stop triggered from MainWindow")
+
+    def _trigger_patient_alert(self) -> None:
+        log.warning("PATIENT EMERGENCY ALERT TRIGGERED!")
+        self._emergency_stop()  # Also stop the mouse
+        
+        # Play a huge warning sound in a background thread
+        import threading
+        import winsound
+
+        def _play_alarm():
+            for _ in range(15):
+                winsound.Beep(1500, 400)
+                winsound.Beep(1000, 400)
+                
+        t = threading.Thread(target=_play_alarm, daemon=True)
+        t.start()
+        
+        self._speech.speak("Emergency! Emergency! The patient requires immediate assistance!")
+        QMessageBox.critical(self, "EMERGENCY ALERT", "PATIENT HAS TRIGGERED THE EMERGENCY ALERT!\nAssistance is required immediately.")
 
     def _on_tracking_error(self, message: str) -> None:
         self._pill_camera.set_ok(False, "Error")

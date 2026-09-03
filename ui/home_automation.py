@@ -4,8 +4,8 @@ ui/home_automation.py
 Home Automation Control module
 """
 
-from PySide6.QtCore import Qt, QTimer, QUrl
-from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -15,74 +15,60 @@ from PySide6.QtWidgets import (
     QSizePolicy
 )
 
+from core.speech_engine import SpeechEngine
 from utils.logger import get_logger
 
 log = get_logger(__name__)
 
 ESP_IP = "http://192.168.4.2"
-DWELL_TIME = 700 # ms
 
-class ApplianceCard(QPushButton):
-    def __init__(self, name, on_endpoint, off_endpoint, parent=None):
+class BlinkCommandButton(QPushButton):
+    def __init__(self, name, endpoint, speech: SpeechEngine, spoken_text="", color="#00D2FF", bg_color="rgba(0, 210, 255, 0.15)", parent=None):
         super().__init__(parent)
         self._name = name
-        self._on_endpoint = on_endpoint
-        self._off_endpoint = off_endpoint
-        self._is_on = False
+        self._endpoint = endpoint
+        self._speech = speech
+        self._spoken_text = spoken_text
+        self._color = color
+        self._bg_color = bg_color
         
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.setMinimumHeight(180)
-        
-        self._hover_timer = QTimer(self)
-        self._hover_timer.setSingleShot(True)
-        self._hover_timer.setInterval(DWELL_TIME)
-        self._hover_timer.timeout.connect(self.toggle_state)
+        self.setMinimumHeight(120)
         
         self.parent_widget = parent
         self._refresh_style()
+        self.clicked.connect(self.trigger_command)
 
     def _refresh_style(self):
-        state_text = "ON" if self._is_on else "OFF"
-        color = "#2ED573" if self._is_on else "#A0B2C6"
-        bg_color = "rgba(46, 213, 115, 0.15)" if self._is_on else "rgba(255, 255, 255, 0.05)"
-        
-        self.setText(f"{self._name}\n\n{state_text}")
+        self.setText(self._name)
         
         self.setStyleSheet(f"""
             QPushButton {{
-                background-color: {bg_color};
-                color: {color};
-                border: 2px solid {color};
+                background-color: {self._bg_color};
+                color: {self._color};
+                border: 2px solid {self._color};
                 border-radius: 16px;
                 font-size: 24px;
                 font-weight: bold;
             }}
             QPushButton:hover {{
-                background-color: rgba(0, 210, 255, 0.15);
-                border: 2px solid #00D2FF;
-                color: #00D2FF;
+                background-color: rgba(255, 255, 255, 0.2);
+                border: 2px solid #FFFFFF;
+                color: #FFFFFF;
             }}
         """)
 
-    def enterEvent(self, event):
-        super().enterEvent(event)
-        self._hover_timer.start()
-
-    def leaveEvent(self, event):
-        super().leaveEvent(event)
-        self._hover_timer.stop()
-
-    def toggle_state(self):
-        self._is_on = not self._is_on
-        self._refresh_style()
-        endpoint = self._on_endpoint if self._is_on else self._off_endpoint
+    def trigger_command(self):
+        if self._spoken_text and self._speech:
+            self._speech.speak(self._spoken_text)
         if self.parent_widget:
-            self.parent_widget.send_command(endpoint)
+            self.parent_widget.send_command(self._endpoint)
 
 
 class HomeAutomationWidget(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, speech: SpeechEngine, parent=None):
         super().__init__(parent)
+        self._speech = speech
         self._net_manager = QNetworkAccessManager(self)
         self._build_ui()
 
@@ -95,16 +81,24 @@ class HomeAutomationWidget(QWidget):
         title.setStyleSheet("color: white; font-size: 28px; font-weight: bold;")
         layout.addWidget(title)
         
+        instructions = QLabel("How to use: Move your cursor by pointing your nose. Look at a button below and deliberately BLINK to activate it.")
+        instructions.setWordWrap(True)
+        instructions.setStyleSheet("color: #A0B2C6; font-size: 20px; margin-bottom: 20px;")
+        layout.addWidget(instructions)
+        
         grid = QGridLayout()
         grid.setSpacing(20)
         
-        self.card_light = ApplianceCard("💡 Room Light", "/home/light_on", "/home/light_off", self)
-        self.card_fan = ApplianceCard("🌀 Ceiling Fan", "/home/fan_on", "/home/fan_off", self)
-        self.card_bed = ApplianceCard("🛏️ Bed Adjust", "/home/bed_up", "/home/bed_down", self)
+        self.btn_light_on = BlinkCommandButton("💡 Light ON", "/home/light_on", self._speech, "Light on", color="#2ED573", bg_color="rgba(46, 213, 115, 0.15)", parent=self)
+        self.btn_light_off = BlinkCommandButton("💡 Light OFF", "/home/light_off", self._speech, "Light off", color="#FF4757", bg_color="rgba(255, 71, 87, 0.15)", parent=self)
         
-        grid.addWidget(self.card_light, 0, 0)
-        grid.addWidget(self.card_fan, 0, 1)
-        grid.addWidget(self.card_bed, 1, 0)
+        self.btn_fan_on = BlinkCommandButton("🌀 Fan ON", "/home/fan_on", self._speech, "Fan on", color="#2ED573", bg_color="rgba(46, 213, 115, 0.15)", parent=self)
+        self.btn_fan_off = BlinkCommandButton("🌀 Fan OFF", "/home/fan_off", self._speech, "Fan off", color="#FF4757", bg_color="rgba(255, 71, 87, 0.15)", parent=self)
+        
+        grid.addWidget(self.btn_light_on, 0, 0)
+        grid.addWidget(self.btn_light_off, 0, 1)
+        grid.addWidget(self.btn_fan_on, 1, 0)
+        grid.addWidget(self.btn_fan_off, 1, 1)
         
         layout.addLayout(grid)
         layout.addStretch(1)
